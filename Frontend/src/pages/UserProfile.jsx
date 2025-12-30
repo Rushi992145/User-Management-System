@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Loading } from '../components/Loading';
-import { isValidEmail } from '../utils/validation';
+import { isValidEmail, validatePasswordStrength } from '../utils/validation';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,9 +30,15 @@ const cardVariants = {
 export const UserProfile = () => {
   const { user: authUser, updateUser } = useAuth();
   const [profileData, setProfileData] = useState({ name: '', email: '' });
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -65,6 +71,28 @@ export const UserProfile = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const validatePassword = () => {
+    const newErrors = {};
+    if (!passwordData.oldPassword.trim()) {
+      newErrors.oldPassword = 'Old password is required';
+    }
+    if (!passwordData.newPassword.trim()) {
+      newErrors.newPassword = 'New password is required';
+    } else {
+      const passwordValidation = validatePasswordStrength(passwordData.newPassword);
+      if (!passwordValidation.valid) {
+        newErrors.newPassword = passwordValidation.message;
+      }
+    }
+    if (!passwordData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
 
 
   const handleProfileChange = (e) => {
@@ -80,6 +108,25 @@ export const UserProfile = () => {
     setPasswordData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (!validatePassword()) return;
+
+    setChangingPassword(true);
+    try {
+      await userAPI.changePassword({
+        oldPassword: passwordData.oldPassword,
+        newPassword: passwordData.newPassword,
+      });
+      toast.success('Password changed successfully');
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -201,6 +248,65 @@ export const UserProfile = () => {
                     className="flex-1"
                   >
                     Reset
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+
+            {/* Change Password Card */}
+            <motion.div
+              variants={cardVariants}
+              className="bg-white/90 backdrop-blur-lg border border-white/60 shadow-xl rounded-2xl overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Change Password
+                </h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Update your password to keep your account secure
+                </p>
+              </div>
+              <form onSubmit={handleChangePassword} className="p-6 space-y-5">
+                <Input
+                  label="Current Password"
+                  type="password"
+                  name="oldPassword"
+                  value={passwordData.oldPassword}
+                  onChange={handlePasswordChange}
+                  error={errors.oldPassword}
+                  placeholder="Enter current password"
+                  required
+                />
+
+                <Input
+                  label="New Password"
+                  type="password"
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange}
+                  error={errors.newPassword}
+                  placeholder="Enter new password"
+                  required
+                />
+
+                <Input
+                  label="Confirm New Password"
+                  type="password"
+                  name="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordChange}
+                  error={errors.confirmPassword}
+                  placeholder="Re-enter new password"
+                  required
+                />
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    loading={changingPassword}
+                    className="w-full"
+                  >
+                    Update Password
                   </Button>
                 </div>
               </form>
