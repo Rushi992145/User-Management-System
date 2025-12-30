@@ -163,6 +163,8 @@ This will run Jest tests in band mode using an in-memory MongoDB server for isol
 - `PUT /api/users/activate/:userId` - Activate user (requires admin)
 - `PUT /api/users/deactivate/:userId` - Deactivate user (requires admin, cannot deactivate other admins)
 
+**For detailed API documentation and Postman collection, see [swagger.json](./swagger.json)**
+
 ## 📝 Environment Variables
 
 ### Backend
