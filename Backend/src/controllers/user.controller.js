@@ -265,6 +265,11 @@ const deactivateUser = async(req,res,next) => {
             return next(new ApiError(400, "User is already inactive"));
         }
 
+        // Prevent deactivating admin users
+        if (user.role === 'admin') {
+            return next(new ApiError(403, 'Cannot deactivate an admin user'));
+        }
+
         user.status = "inactive";
         await user.save();
 
