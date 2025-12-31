@@ -225,6 +225,18 @@ This will run Jest tests in band mode using an in-memory MongoDB server for isol
 - **User**: Can view and edit own profile, change password
 - **Admin**: Can manage all users (activate/deactivate), cannot deactivate other admins
 
+## 🔐 Default Accounts (for local/dev)
+
+Use these seed accounts when running the app locally or for quick testing.
+
+- **Admin**
+   - Email: admin@gmail.com
+   - Password: Admin@123
+
+- **User**
+   - Email: rushi@gmail1.com
+   - Password: Rushi@123
+
 ## 📄 License
 
 This project is provided as-is for educational purposes.
